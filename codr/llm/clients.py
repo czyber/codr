@@ -11,7 +11,7 @@ from langchain_core.messages import SystemMessage
 
 from dotenv import load_dotenv
 
-from codr.llm.tools import DocumentInspectionTool,, LineNumberSearchTool
+from codr.llm.tools import DocumentInspectionTool, LineNumberSearchTool
 from codr.llm.documents import document_storage
 
 load_dotenv()
