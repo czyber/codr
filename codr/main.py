@@ -15,7 +15,7 @@ class Task:
 chroma = ChromaDb()
 
 
-class AutoCreate:
+class Codr:
     def solve_task(self, task: Task, repo_slug: str, token: str):
         repo_client = RepoClient(slug=repo_slug, token=token)
         codebase_service = CodebaseService(storage=SqlCodebaseStorage(), vector_db=chroma, repo_client=repo_client)
@@ -29,13 +29,13 @@ class AutoCreate:
         codebase_service.apply_code_changes(code_changes=code_changes)
 
 
-auto_create = AutoCreate()
+codr = Codr()
 
 if __name__ == "__main__":
     logger.info("Starting the service")
     task = Task(description="Remove the `delete_homework` endpoint from the homework_router.")
 
-    auto_create.solve_task(task=task, repo_slug="<your-repo-slug>", token="<your-github-token>")
+    codr.solve_task(task=task, repo_slug="<your-repo-slug>", token="<your-github-token>")
 
 
 
