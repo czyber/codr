@@ -1,19 +1,21 @@
 from typing import TypedDict, List
 
-from langchain import hub
-from langchain.agents import create_openai_tools_agent, AgentExecutor, Agent
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 from langchain_core.pydantic_v1 import BaseModel, Field
+from langgraph.prebuilt import create_react_agent
+from langchain_core.messages import SystemMessage
+
 
 
 from dotenv import load_dotenv
 
-from codr.llm.tools import DocumentInspectionTool, CodeEditTool, LineNumberSearchTool
+from codr.llm.tools import DocumentInspectionTool,, LineNumberSearchTool
 from codr.llm.documents import document_storage
 
 load_dotenv()
+
 
 class Queries(BaseModel):
     queries: list[str]
@@ -54,9 +56,6 @@ def invoke_query_assistant(task: str) -> Queries:
     return query_assistant.invoke(query_prompt)
 
 
-
-from langgraph.prebuilt import create_react_agent
-from langchain_core.messages import SystemMessage
 
 
 class CodeChange(TypedDict):
