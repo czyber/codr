@@ -122,11 +122,6 @@ def invoke_coding_assistant(task: str, relevant_files: list) -> CodeChanges:
 
     code_changes = []
     for fp, doc in document_storage.documents.items():
-        print(fp)
-        print(doc)
-        print(32 * "-")
-
-        code_change_agent = create_react_agent(llm, tools, messages_modifier=code_edit_system_message)
         chain = code_change_prompt | llm | parser
         resp = chain.invoke(
             {"input": f"{task}, These are the possible files: {', '.join(document_storage.documents.keys())}", "task": task, "file_path": fp, "snippet": doc, "agent_scratchpad": []},

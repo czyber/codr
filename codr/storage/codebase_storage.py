@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 
 from codr.entities import Codebase
-from codr.models import Session, CodebaseModel
+from codr.models import CodebaseModel
+from codr.storage.storage import SessionLocal
 
 
 class CodebaseStorage(ABC):
@@ -16,7 +17,7 @@ class CodebaseStorage(ABC):
 
 class SqlCodebaseStorage(CodebaseStorage):
     def create(self, codebase: Codebase) -> None:
-        with Session() as session:
+        with SessionLocal() as session:
             codebase_model = CodebaseModel(
                 id=codebase.embedding_id,
                 name=codebase.slug,
@@ -26,7 +27,7 @@ class SqlCodebaseStorage(CodebaseStorage):
             session.commit()
 
     def get(self, slug: str, sha: str) -> Codebase | None:
-        with Session() as session:
+        with SessionLocal() as session:
             codebase_model = session.query(CodebaseModel).filter_by(name=slug, sha=sha).first()
             if codebase_model is None:
                 return None

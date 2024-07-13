@@ -6,39 +6,28 @@ from codr.storage.vector_db import ChromaDb
 
 from dataclasses import dataclass
 
+from codr.api.routes import app
 
 @dataclass
 class Task:
     description: str
 
 
-chroma = ChromaDb()
-
-
 class Codr:
-    def solve_task(self, task: Task, repo_slug: str, token: str):
+    @staticmethod
+    def solve_task(task_description: str, repo_slug: str, token: str):
         repo_client = RepoClient(slug=repo_slug, token=token)
-        codebase_service = CodebaseService(storage=SqlCodebaseStorage(), vector_db=chroma, repo_client=repo_client)
-
+        codebase_service = CodebaseService(storage=SqlCodebaseStorage(), vector_db=ChromaDb(), repo_client=repo_client)
         codebase_service.create_embeddings(slug=repo_slug)
-
-        relevant_files = codebase_service.get_relevant_files(task.description)
-
-        code_changes = codebase_service.get_code_changes(task.description, relevant_files)
-
+        relevant_files = codebase_service.get_relevant_files(task_description)
+        code_changes = codebase_service.get_code_changes(task_description, relevant_files)
         codebase_service.apply_code_changes(code_changes=code_changes)
 
 
 codr = Codr()
 
+
+
 if __name__ == "__main__":
-    logger.info("Starting the service")
-    task = Task(description="Remove the `delete_homework` endpoint from the homework_router.")
-
-    codr.solve_task(task=task, repo_slug="<your-repo-slug>", token="<your-github-token>")
-
-
-
-
-
-
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8080)

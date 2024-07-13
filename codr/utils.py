@@ -1,0 +1,28 @@
+from dataclasses import dataclass
+import os
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
+@dataclass
+class GithubCredentials:
+    client_id: str
+    client_secret: str
+
+    @classmethod
+    def load(cls) -> "GithubCredentials":
+        return cls(
+            client_id=os.getenv("GITHUB_CLIENT_ID"),
+            client_secret=os.getenv("GITHUB_CLIENT_SECRET")
+        )
+
+
+@dataclass
+class RedirectUri:
+    uri: str
+
+    @classmethod
+    def load(cls) -> "RedirectUri":
+        return cls(uri=os.getenv("REDIRECT_URI"))

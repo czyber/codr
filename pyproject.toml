@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "autocreate"
+name = "codr"
 version = "0.1.0"
 description = ""
 authors = ["czyber <czypka.github@gmail.com>"]

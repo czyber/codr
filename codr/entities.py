@@ -20,3 +20,9 @@ class Document:
     content: str
     source: str
     sha: str
+
+
+@dataclass
+class User:
+    id: str
+    username: str
