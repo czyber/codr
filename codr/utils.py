@@ -7,12 +7,12 @@ load_dotenv()
 
 
 @dataclass
-class GithubCredentials:
+class GitHubCredentials:
     client_id: str
     client_secret: str
 
     @classmethod
-    def load(cls) -> "GithubCredentials":
+    def load(cls) -> "GitHubCredentials":
         return cls(
             client_id=os.getenv("GITHUB_CLIENT_ID"),
             client_secret=os.getenv("GITHUB_CLIENT_SECRET")

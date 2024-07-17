@@ -8,6 +8,7 @@ from dataclasses import dataclass
 
 from codr.api.routes import app
 
+
 @dataclass
 class Task:
     description: str
@@ -25,7 +26,6 @@ class Codr:
 
 
 codr = Codr()
-
 
 
 if __name__ == "__main__":

@@ -26,3 +26,4 @@ class Document:
 class User:
     id: str
     username: str
+    github_access_token: str | None = None

@@ -6,7 +6,7 @@ from codr.models import UserModel
 from codr.storage.storage import SessionLocal
 
 
-class UserStorage(ABC):
+class UserRepository(ABC):
     def get_user(self, user_id):
         raise NotImplementedError
 
@@ -20,13 +20,13 @@ class UserStorage(ABC):
         raise NotImplementedError
 
 
-class SqlUserStorage(UserStorage):
+class SqlUserRepository(UserRepository):
     def get_user(self, user_id):
         with SessionLocal() as session:
             user_model = session.query(UserModel).filter_by(id=user_id).first()
             if user_model is None:
                 return None
-            return User(id=user_model.id, username=user_model.username)
+            return User(id=user_model.id, username=user_model.username, github_access_token=user_model.github_access_token)
 
     def create_user(self, user: UserCreate):
         with SessionLocal() as session:
@@ -35,7 +35,7 @@ class SqlUserStorage(UserStorage):
             session.commit()
             return User(id=user_model.id, username=user_model.username)
 
-    def update_user(self, user):
+    def update_user(self, user: User):
         with SessionLocal() as session:
             user_model = session.query(UserModel).filter_by(id=user.id).first()
             if user_model is None:
@@ -44,7 +44,7 @@ class SqlUserStorage(UserStorage):
             user_model.github_access_token = user.github_access_token
 
             session.commit()
-            return User(id=user_model.id, username=user_model.username)
+            return User(id=user_model.id, username=user_model.username, github_access_token=user_model.github_access_token)
 
     def delete_user(self, user_id):
         with SessionLocal() as session:
@@ -56,7 +56,7 @@ class SqlUserStorage(UserStorage):
             return User(id=user_model.id, username=user_model.username)
 
 
-class DummyUserStorage(UserStorage):
+class DummyUserRepository(UserRepository):
     def get_user(self, user_id):
         return User(id=user_id, username="dummy")
 
@@ -70,5 +70,5 @@ class DummyUserStorage(UserStorage):
         return User(id=user_id, username="dummy")
 
 
-def get_user_storage():
-    return SqlUserStorage()
+def get_user_repository():
+    return SqlUserRepository()

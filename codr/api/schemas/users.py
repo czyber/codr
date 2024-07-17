@@ -15,4 +15,4 @@ class User(UserBase):
     github_access_token: str | None = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
