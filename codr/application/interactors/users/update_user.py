@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from codr.entities import User
+from codr.application.entities import User
 from codr.storage.user_repository import UserRepository
 
 
@@ -19,5 +19,5 @@ class UpdateUser:
         self.__user_repository = user_repository
 
     def execute(self, request: UpdateUserRequest) -> UpdateUserResponse:
-        user = self.__user_repository.update_user(request.user)
+        user = self.__user_repository.update(request.user)
         return UpdateUserResponse(user=user)

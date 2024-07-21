@@ -2,7 +2,7 @@ import shutil
 
 from github.Repository import Repository
 
-from codr.entities import Document, Codebase
+from codr.application.entities import Document, Codebase
 from codr.llm.clients import invoke_query_assistant, invoke_coding_assistant, invoke_verify_agent
 from codr.logger import logger
 from codr.models import new_uuid

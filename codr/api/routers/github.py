@@ -7,15 +7,15 @@ from fastapi.responses import RedirectResponse
 
 from codr.api.schemas.github import GitHubAccessTokenCreate, GitHubAccessToken
 from codr.dependencies import Dependencies
-from codr.interactors.github.create_access_token import CreateAccessToken, CreateAccessTokenRequest
-from codr.interactors.github.get_redirect_url import GetRedirectURL, GetRedirectURLRequest
+from codr.application.interactors.github.create_access_token import CreateAccessToken, CreateAccessTokenRequest
+from codr.application.interactors.github.get_redirect_url import GetRedirectURL, GetRedirectURLRequest
 
 load_dotenv()
 
 router = APIRouter()
 
 
-@router.get("/login", response_model=RedirectResponse)
+@router.get("/login")
 def login(get_redirect_url: GetRedirectURL = Depends(Dependencies.get_redirect_url)):
     response = get_redirect_url.execute(GetRedirectURLRequest())
     return RedirectResponse(url=response.url)

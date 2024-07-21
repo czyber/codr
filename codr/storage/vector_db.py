@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import chromadb
 from openai import OpenAI
 
-from codr.entities import Document
+from codr.application.entities import Document
 from codr.models import new_uuid
 from dotenv import load_dotenv
 

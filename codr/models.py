@@ -1,14 +1,17 @@
 
 import uuid
 
-from sqlalchemy.orm import declarative_base, Mapped, mapped_column
+from sqlalchemy.orm import declarative_base, Mapped, mapped_column, DeclarativeBase
 
 
 def new_uuid():
     return str(uuid.uuid4())
 
+class Base(DeclarativeBase):
+    __abstract__ = True
 
-Base = declarative_base()
+    def to_dict(self):
+        return {field.name: getattr(self, field.name) for field in self.__table__.columns}
 
 
 class CodebaseModel(Base):

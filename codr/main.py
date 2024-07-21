@@ -1,5 +1,9 @@
+from sqlalchemy import create_engine
+
 from codr.codebase_service import CodebaseService
+from codr.dependencies import Dependencies
 from codr.logger import logger
+from codr.models import Base
 from codr.repo_client import RepoClient
 from codr.storage.codebase_storage import SqlCodebaseStorage
 from codr.storage.vector_db import ChromaDb
@@ -29,5 +33,6 @@ codr = Codr()
 
 
 if __name__ == "__main__":
+    Base.metadata.create_all(bind=create_engine('sqlite:///./test.db'))
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=8080)

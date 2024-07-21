@@ -1,9 +1,15 @@
 from dataclasses import dataclass
 import os
+from typing import Any, TypeVar
 
 from dotenv import load_dotenv
 
 load_dotenv()
+
+
+Kwargs = dict[str, Any]
+Id = str
+IdType = TypeVar('IdType', bound=Id)
 
 
 @dataclass

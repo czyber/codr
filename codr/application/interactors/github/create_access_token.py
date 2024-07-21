@@ -1,9 +1,9 @@
 import requests
 from dataclasses import dataclass
 
-from codr.entities import User
-from codr.interactors.users.get_user import GetUser, GetUserRequest
-from codr.interactors.users.update_user import UpdateUser, UpdateUserRequest
+from codr.application.entities import User
+from codr.application.interactors.users.get_user import GetUser, GetUserRequest
+from codr.application.interactors.users.update_user import UpdateUser, UpdateUserRequest
 from codr.utils import GitHubCredentials, RedirectUri
 from codr.storage.user_repository import UserRepository
 

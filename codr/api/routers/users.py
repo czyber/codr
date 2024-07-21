@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi import status
 
-from codr.api.schemas.users import UserCreate, User
+from codr.api.schemas.users import UserCreate, User, UserPatch
+from codr.application.interactors.users.patch_user import PatchUser, PatchUserRequest
 from codr.dependencies import Dependencies
-from codr.interactors.users.create_user import CreateUser, CreateUserRequest
-from codr.interactors.users.get_user import GetUser, GetUserRequest
+from codr.application.interactors.users.create_user import CreateUser, CreateUserRequest
+from codr.application.interactors.users.get_user import GetUser, GetUserRequest
+from codr.application.interactors.users.delete_user import DeleteUser, DeleteUserRequest
 
 
 router = APIRouter(prefix="/users")
@@ -23,3 +25,14 @@ def create_user(user_create: UserCreate, create_user_interactor: CreateUser = De
     response = create_user_interactor.execute(CreateUserRequest(username=user_create.username))
     return response.user
 
+
+@router.patch("/{user_id}", response_model=User)
+def patch_user(user_id: str, user_patch: UserPatch, patch_user_interactor: PatchUser = Depends(Dependencies.patch_user)):
+    response = patch_user_interactor.execute(PatchUserRequest(user_id=user_id, patch_user=user_patch))
+    return response.user
+
+
+@router.delete("/{user_id}", response_model=User)
+def delete_user(user_id: str, delete_user_interactor: DeleteUser = Depends(Dependencies.delete_user)):
+    response = delete_user_interactor.execute(DeleteUserRequest(user_id=user_id))
+    return response.user

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from codr.entities import Codebase
+from codr.application.entities import Codebase
 from codr.models import CodebaseModel
 from codr.storage.storage import SessionLocal
 

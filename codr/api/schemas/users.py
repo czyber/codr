@@ -16,3 +16,10 @@ class User(UserBase):
 
     class Config:
         from_attributes = True
+
+
+class UserPatch(UserBase):
+    username: str | None = None
+    github_access_token: str | None = None
+
+
