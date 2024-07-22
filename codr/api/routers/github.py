@@ -23,10 +23,10 @@ def login(get_redirect_url: GetRedirectURL = Depends(Dependencies.get_redirect_u
 
 @router.post("/github/callback", response_model=GitHubAccessToken)
 def github_callback(
-        github_access_token_create: GitHubAccessTokenCreate,
-        create_access_token: CreateAccessToken = Depends(Dependencies.create_access_token)
+        github_access_token_create_interactor: GitHubAccessTokenCreate,
+        create_access_token_interactor: CreateAccessToken = Depends(Dependencies.create_access_token)
 ):
-    response = create_access_token.execute(CreateAccessTokenRequest(code=github_access_token_create.code, user_id=github_access_token_create.user_id))
+    response = create_access_token_interactor.execute(CreateAccessTokenRequest(code=github_access_token_create_interactor.code, user_id=github_access_token_create_interactor.user_id))
     if response.user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return GitHubAccessToken(user=response.user)

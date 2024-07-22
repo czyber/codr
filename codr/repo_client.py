@@ -19,13 +19,14 @@ load_dotenv()
 uuid = new_uuid()[:5]
 new_branch_name = f"new-branch-{uuid}"
 
-class RepoClient:
+
+class GitHubClient:
     def __init__(self, slug: str, token: str):
         self.__github = Github(auth=Auth.Token(token))
-        self.__repo = self._get_repository(slug=slug, token=token)
+        self.__repo = self._get_repository(slug=slug)
         self.__token = token
 
-    def _get_repository(self, slug: str, token: str) -> Repository:
+    def _get_repository(self, slug: str) -> Repository:
         logger.info(f"Getting repository {slug}")
         return self.__github.get_repo(slug)
 
@@ -50,12 +51,6 @@ class RepoClient:
         return f"https://api.github.com/repos/{self.repo_slug}/tarball/{self.sha}"
 
     def download(self):
-        """
-        This function is largely copy-pasted from the Seer project:
-        https://github.com/getsentry/seer/blob/11827c2237c46c0c7f43c19d9b53074913775105/src/seer/automation/codebase/repo_client.py#L115
-        :return:
-        """
-        # Set a custom temporary directory
         base_temp_dir = '/tmp'
         if not os.path.exists(base_temp_dir):
             print(f"Base temp directory does not exist: {base_temp_dir}")
@@ -154,7 +149,6 @@ class RepoClient:
         self.run_command(f"git checkout -fb {new_branch_name}", repo_path)
         logger.info(f"Git repository initialized in {repo_path}")
 
-
     def commit_changes(self, repo_path: str):
         logger.info(f"Committing changes in {repo_path}")
         # Add all changes to the staging area
@@ -167,7 +161,6 @@ class RepoClient:
         except Exception as e:
             logger.error(f"Commit failed: {e}")
             raise
-
 
     def create_pull_request(self, repo_path: str):
         logger.info(f"Creating a pull request in {repo_path}")

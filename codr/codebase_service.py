@@ -6,7 +6,7 @@ from codr.application.entities import Document, Codebase
 from codr.llm.clients import invoke_query_assistant, invoke_coding_assistant, invoke_verify_agent
 from codr.logger import logger
 from codr.models import new_uuid
-from codr.repo_client import RepoClient
+from codr.repo_client import GitHubClient
 from codr.storage.codebase_storage import CodebaseStorage
 from codr.storage.vector_db import VectorDb
 
@@ -69,7 +69,7 @@ def cleanup_dir(tmp_repo_dir):
 
 
 class CodebaseService:
-    def __init__(self, storage: CodebaseStorage, vector_db: VectorDb, repo_client: RepoClient) -> None:
+    def __init__(self, storage: CodebaseStorage, vector_db: VectorDb, repo_client: GitHubClient) -> None:
         self.__storage = storage
         self.__vector_db = vector_db
         self.__repo_client = repo_client

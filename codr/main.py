@@ -4,7 +4,7 @@ from codr.codebase_service import CodebaseService
 from codr.dependencies import Dependencies
 from codr.logger import logger
 from codr.models import Base
-from codr.repo_client import RepoClient
+from codr.repo_client import GitHubClient
 from codr.storage.codebase_storage import SqlCodebaseStorage
 from codr.storage.vector_db import ChromaDb
 
@@ -21,7 +21,7 @@ class Task:
 class Codr:
     @staticmethod
     def solve_task(task_description: str, repo_slug: str, token: str):
-        repo_client = RepoClient(slug=repo_slug, token=token)
+        repo_client = GitHubClient(slug=repo_slug, token=token)
         codebase_service = CodebaseService(storage=SqlCodebaseStorage(), vector_db=ChromaDb(), repo_client=repo_client)
         codebase_service.create_embeddings(slug=repo_slug)
         relevant_files = codebase_service.get_relevant_files(task_description)
