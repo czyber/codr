@@ -1,31 +1,40 @@
-from typing import Generator
+from typing import Generator, Generic
 
 from sqlalchemy.orm import Session
 
 from codr.models import Base
 from codr.storage.dao.abstract_dao import DAO
+from codr.storage.mapper.base import Mapper
+from codr.storage.utils import M, E
 from codr.utils import Kwargs, Id
 
 
 class SqlDAO(DAO):
-    def __init__(self, model: type[Base], session: Session) -> None:
+    def __init__(self, model: type[M], session: Session, mapper: Mapper) -> None:
         self.__model = model
         self.__session = session
+        self.__mapper = mapper
 
-    def insert(self, kwargs: Kwargs) -> None:
-        self.__session.add(self.__model(**kwargs))
+    def insert(self, entity: type[E]) -> None:
+        self.__session.add(self.__mapper.to_model(entity))
         self.__session.commit()
 
-    def get(self, id_: Id) -> Kwargs:
-        return self.__session.query(self.__model).filter_by(id=id_).first().to_dict()
+    def get(self, id_: Id) -> E:
+        model = self.__session.query(self.__model).filter_by(id=id_).first()
+        return self.__mapper.to_entity(model)
 
-    def update(self, id_: Id, kwargs: Kwargs) -> Kwargs:
-        self.__session.query(self.__model).filter_by(id=id_).update(kwargs)
+    def update(self, entity: E) -> E:
+        stored_entity = self.get(entity.id)
+        if stored_entity is None:
+            raise ValueError(f'Entity with id {entity.id} not found')
+        model = self.__mapper.to_model(entity)
+        self.__session.merge(model)
         self.__session.commit()
-        return kwargs
+        return self.__mapper.to_entity(model)
 
-    def remove(self, id_: Id) -> Kwargs:
-        kwargs = self.get(id_)
-        self.__session.query(self.__model).filter_by(id=id_).delete()
+    def remove(self, id_: Id) -> E:
+        entity = self.get(id_)
+        model = self.__session.query(self.__model).filter_by(id=id_).first()
+        self.__session.delete(model)
         self.__session.commit()
-        return kwargs
+        return entity

@@ -1,11 +1,13 @@
-
+from typing import List
 import uuid
 
-from sqlalchemy.orm import declarative_base, Mapped, mapped_column, DeclarativeBase
-
+from sqlalchemy import Table, Column, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship
+from sqlalchemy.dialects.sqlite import JSON
 
 def new_uuid():
     return str(uuid.uuid4())
+
 
 class Base(DeclarativeBase):
     __abstract__ = True
@@ -23,8 +25,30 @@ class CodebaseModel(Base):
     sha: Mapped[str | None]
 
 
+user_repo_association_table = Table(
+    "user_repo_association",
+    Base.metadata,
+    Column("user_id", ForeignKey("users.id")),
+    Column("repo_id", ForeignKey("repos.id")),
+)
+
+
+class RepoModel(Base):
+    __tablename__ = 'repos'
+    id: Mapped[str] = mapped_column(primary_key=True, default=new_uuid)
+    name: Mapped[str]
+    owner: Mapped[str]
+
+
 class UserModel(Base):
     __tablename__ = 'users'
     id: Mapped[str] = mapped_column(primary_key=True, default=new_uuid)
     username: Mapped[str]
     github_access_token: Mapped[str | None]
+    repos: Mapped[List[RepoModel]] = relationship(secondary=user_repo_association_table, cascade="all, delete")
+
+
+
+
+
+

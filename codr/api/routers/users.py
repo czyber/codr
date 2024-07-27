@@ -1,7 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi import status
 
+from codr.api.schemas.github import RepoAdd
 from codr.api.schemas.users import UserCreate, User, UserPatch
+from codr.application.exceptions import NoGitHubAccessTokenError, RepoAlreadyExistsError
+from codr.application.interactors.github.add_repo import AddRepo, AddRepoRequest
 from codr.application.interactors.users.patch_user import PatchUser, PatchUserRequest
 from codr.dependencies import Dependencies
 from codr.application.interactors.users.create_user import CreateUser, CreateUserRequest
@@ -36,3 +39,14 @@ def patch_user(user_id: str, user_patch: UserPatch, patch_user_interactor: Patch
 def delete_user(user_id: str, delete_user_interactor: DeleteUser = Depends(Dependencies.delete_user)):
     response = delete_user_interactor.execute(DeleteUserRequest(user_id=user_id))
     return response.user
+
+
+@router.post("/{user_id}/repos", response_model=str)
+def add_repository(user_id: str, repo_add: RepoAdd, add_repo: AddRepo = Depends(Dependencies.add_repo)):
+    try:
+        response = add_repo.execute(AddRepoRequest(owner=repo_add.owner, name=repo_add.name, user_id=user_id))
+    except NoGitHubAccessTokenError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User does not have a github access token")
+    except RepoAlreadyExistsError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User already has this repo")
+    return response.name

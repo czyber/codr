@@ -1,21 +1,22 @@
 from abc import ABC, abstractmethod
 
-from codr.utils import Kwargs, Id
+from codr.storage.utils import E
+from codr.utils import Id
 
 
 class DAO(ABC):
     @abstractmethod
-    def insert(self, kwargs: Kwargs) -> None:
+    def insert(self, entity: E) -> None:
         raise NotImplementedError
 
     @abstractmethod
-    def get(self, id_: Id) -> Kwargs:
+    def get(self, id_: Id) -> E:
         raise NotImplementedError
 
     @abstractmethod
-    def update(self, id_: Id, kwargs: Kwargs) -> Kwargs:
+    def update(self, entity: E) -> E:
         raise NotImplementedError
 
     @abstractmethod
-    def remove(self, id_: Id) -> Kwargs:
+    def remove(self, id_: Id) -> E:
         raise NotImplementedError

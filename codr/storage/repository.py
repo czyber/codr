@@ -64,8 +64,7 @@ class Repository(AbstractRepository[E], Generic[E]):
         self.__factory = factory
 
     def add(self, entity: E) -> E:
-        kwargs = entity.model_dump()
-        self.__dao.insert(kwargs)
+        self.__dao.insert(entity)
         return entity
 
     def create(self, kwargs: Kwargs) -> E:
@@ -73,20 +72,15 @@ class Repository(AbstractRepository[E], Generic[E]):
 
     def create_and_add(self, kwargs: Kwargs) -> E:
         entity = self.create(kwargs)
-        self.add(entity)
-        return entity
+        return self.add(entity)
 
     def remove(self, id_: Id) -> E:
-        kwargs = self.__dao.get(id_)
-        entity = self.__factory.reconstitute(kwargs)
+        entity = self.__dao.get(id_)
         self.__dao.remove(id_)
         return entity
 
     def get(self, id_: Id) -> E:
-        kwargs = self.__dao.get(id_)
-        return self.__factory.reconstitute(kwargs)
+        return self.__dao.get(id_)
 
     def update(self, entity: E) -> E:
-        kwargs = entity.model_dump()
-        self.__dao.update(entity.id, kwargs)
-        return entity
+        return self.__dao.update(entity)

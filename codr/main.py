@@ -4,7 +4,7 @@ from codr.codebase_service import CodebaseService
 from codr.dependencies import Dependencies
 from codr.logger import logger
 from codr.models import Base
-from codr.repo_client import GitHubClient
+from codr.github_client import GitHubClient
 from codr.storage.codebase_storage import SqlCodebaseStorage
 from codr.storage.vector_db import ChromaDb
 

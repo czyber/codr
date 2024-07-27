@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 
 from codr.api.schemas.users import User
+from codr.utils import Id
 
 
 class GitHubBase(BaseModel):
@@ -17,3 +18,8 @@ class GitHubAccessToken(GitHubBase):
 
     class Config:
         from_attributes = True
+
+
+class RepoAdd(BaseModel):
+    name: str
+    owner: str

@@ -1,10 +1,16 @@
+from uuid import uuid4
+
 from pydantic import BaseModel
 
 from codr.utils import IdType
 
 
+def new_uuid():
+    return str(uuid4())
+
+
 class Entity(BaseModel):
-    id: IdType
+    id: IdType = new_uuid()
 
 
 class Embedding(Entity):
@@ -23,6 +29,12 @@ class Document(Entity):
     sha: str
 
 
+class Repo(Entity):
+    owner: str
+    name: str
+
+
 class User(Entity):
     username: str
     github_access_token: str | None = None
+    repos: list[Repo] = []

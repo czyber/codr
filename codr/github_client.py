@@ -1,14 +1,15 @@
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 import os
-from pathlib import Path
 import shutil
 import subprocess
 import tarfile
 import tempfile
-import git
 from github import Github, Auth
 from github.Repository import Repository
 import requests
 
+from codr.application.entities import Repo
 from codr.logger import logger
 from dotenv import load_dotenv
 
@@ -19,16 +20,54 @@ load_dotenv()
 uuid = new_uuid()[:5]
 new_branch_name = f"new-branch-{uuid}"
 
+@dataclass
+class RepoInfo:
+    name: str
+    owner: str
 
-class GitHubClient:
-    def __init__(self, slug: str, token: str):
+
+class VersionControlService(ABC):
+    @abstractmethod
+    def download(self, repo_info: RepoInfo):
+        raise NotImplementedError
+
+    @abstractmethod
+    def initialize_git_repo(self, repo_path: str):
+        raise NotImplementedError
+
+    @abstractmethod
+    def commit_changes(self, repo_path: str):
+        raise NotImplementedError
+
+    @abstractmethod
+    def create_pull_request(self, repo_path: str):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_repository(self, slug: str) -> Repo:
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_access_token(self, token: str):
+        raise NotImplementedError
+
+
+class GitHubClient(VersionControlService):
+    def __init__(self):
+        self.__github = None
+        self.__repo = None
+
+    def set_access_token(self, token: str):
         self.__github = Github(auth=Auth.Token(token))
-        self.__repo = self._get_repository(slug=slug)
-        self.__token = token
 
     def _get_repository(self, slug: str) -> Repository:
         logger.info(f"Getting repository {slug}")
         return self.__github.get_repo(slug)
+
+    def get_repository(self, slug: str) -> Repo:
+        repo = self._get_repository(slug)
+        repo_entity = Repo(name=repo.name, owner=repo.owner.login)
+        return repo_entity
 
     @property
     def repo(self) -> Repository:

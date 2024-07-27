@@ -5,14 +5,15 @@ from dotenv import load_dotenv
 from fastapi import status
 from fastapi.responses import RedirectResponse
 
-from codr.api.schemas.github import GitHubAccessTokenCreate, GitHubAccessToken
+from codr.api.schemas.github import GitHubAccessTokenCreate, GitHubAccessToken, RepoAdd
+from codr.application.interactors.github.add_repo import AddRepo, AddRepoRequest
 from codr.dependencies import Dependencies
 from codr.application.interactors.github.create_access_token import CreateAccessToken, CreateAccessTokenRequest
 from codr.application.interactors.github.get_redirect_url import GetRedirectURL, GetRedirectURLRequest
 
 load_dotenv()
 
-router = APIRouter()
+router = APIRouter(prefix="/github")
 
 
 @router.get("/login")
@@ -21,7 +22,7 @@ def login(get_redirect_url: GetRedirectURL = Depends(Dependencies.get_redirect_u
     return RedirectResponse(url=response.url)
 
 
-@router.post("/github/callback", response_model=GitHubAccessToken)
+@router.post("/callback", response_model=GitHubAccessToken)
 def github_callback(
         github_access_token_create_interactor: GitHubAccessTokenCreate,
         create_access_token_interactor: CreateAccessToken = Depends(Dependencies.create_access_token)
