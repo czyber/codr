@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 
 
@@ -13,12 +15,19 @@ class Repo(BaseModel):
     owner: str
     name: str
 
+class VersionControlInfo(BaseModel):
+    access_token: str
+    refresh_token: str
+    access_token_expires_at: datetime
+    refresh_token_expires_at: datetime
+
 
 class User(UserBase):
     id: str
     username: str
     github_access_token: str | None = None
     repos: list[Repo] = []
+    version_control_infos: list[VersionControlInfo] = []
 
     class Config:
         from_attributes = True

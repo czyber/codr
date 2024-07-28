@@ -2,6 +2,7 @@ from codr.application.entities import User
 from codr.models import UserModel
 from codr.storage.mapper.base import Mapper
 from codr.storage.mapper.repo import MapperRepo
+from codr.storage.mapper.version_control_info import MapperVersionControlInfo
 
 
 class MapperUser(Mapper):
@@ -10,7 +11,7 @@ class MapperUser(Mapper):
         return User(
             id=model.id,
             username=model.username,
-            github_access_token=model.github_access_token,
+            version_control_infos=[MapperVersionControlInfo.to_entity(info) for info in model.version_control_infos],
             repos=[MapperRepo.to_entity(repo) for repo in model.repos],
         )
 
@@ -19,6 +20,6 @@ class MapperUser(Mapper):
         return UserModel(
             id=entity.id,
             username=entity.username,
-            github_access_token=entity.github_access_token,
+            version_control_infos=[MapperVersionControlInfo.to_model(info) for info in entity.version_control_infos],
             repos=[MapperRepo.to_model(repo) for repo in entity.repos],
         )

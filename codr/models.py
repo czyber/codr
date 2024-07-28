@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 import uuid
 
@@ -40,12 +41,30 @@ class RepoModel(Base):
     owner: Mapped[str]
 
 
+class VersionControlInfoModel(Base):
+    __tablename__ = 'version_control_info'
+    id: Mapped[str] = mapped_column(primary_key=True, default=new_uuid)
+    access_token: Mapped[str]
+    refresh_token: Mapped[str]
+    access_token_expires_at: Mapped[datetime]
+    refresh_token_expires_at: Mapped[datetime]
+    version_control_type: Mapped[str]
+
+
+user_version_control_info_association_table = Table(
+    "user_version_control_info_association",
+    Base.metadata,
+    Column("user_id", ForeignKey("users.id")),
+    Column("version_control_info_id", ForeignKey("version_control_info.id")),
+)
+
+
 class UserModel(Base):
     __tablename__ = 'users'
     id: Mapped[str] = mapped_column(primary_key=True, default=new_uuid)
     username: Mapped[str]
-    github_access_token: Mapped[str | None]
     repos: Mapped[List[RepoModel]] = relationship(secondary=user_repo_association_table, cascade="all, delete")
+    version_control_infos: Mapped[List[VersionControlInfoModel]] = relationship(secondary=user_version_control_info_association_table, cascade="all, delete")
 
 
 
