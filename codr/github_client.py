@@ -1,25 +1,29 @@
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
 import os
 import shutil
 import subprocess
 import tarfile
 import tempfile
-from github import Github, Auth
-from github.Repository import Repository
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+
 import requests
+from dotenv import load_dotenv
+from github import Auth, Github
+from github.Repository import Repository
 
 from codr.application.entities import Repo, VersionControlType
-from codr.application.interactors.github.authenticate_user import AuthenticateUser, AuthenticateUserRequest
+from codr.application.interactors.github.authenticate_user import (
+    AuthenticateUser,
+    AuthenticateUserRequest,
+)
 from codr.logger import logger
-from dotenv import load_dotenv
-
 from codr.models import new_uuid
 
 load_dotenv()
 
 uuid = new_uuid()[:5]
 new_branch_name = f"new-branch-{uuid}"
+
 
 @dataclass
 class RepoInfo:
@@ -67,7 +71,11 @@ class GitHubClient(VersionControlService):
         self.__github = Github(auth=Auth.Token(token))
 
     def set_user(self, user_id: str):
-        access_token = self.__authenticate_user.execute(AuthenticateUserRequest(user_id=user_id, version_control_type=VersionControlType.GITHUB)).access_token
+        access_token = self.__authenticate_user.execute(
+            AuthenticateUserRequest(
+                user_id=user_id, version_control_type=VersionControlType.GITHUB
+            )
+        ).access_token
         self.set_access_token(access_token)
 
     def _get_repository(self, slug: str) -> Repository:
@@ -100,7 +108,7 @@ class GitHubClient(VersionControlService):
         return f"https://api.github.com/repos/{self.repo_slug}/tarball/{self.sha}"
 
     def download(self):
-        base_temp_dir = '/tmp'
+        base_temp_dir = "/tmp"
         if not os.path.exists(base_temp_dir):
             print(f"Base temp directory does not exist: {base_temp_dir}")
         else:
@@ -115,14 +123,18 @@ class GitHubClient(VersionControlService):
             logger.debug(f"Temporary directory created at: {tmp_dir}")
         except FileNotFoundError as fnf_error:
             logger.error(f"FileNotFoundError: {fnf_error}")
-            logger.error(f"Directory creation failed. Path attempted: {os.path.join(base_temp_dir, self.sha)}")
+            logger.error(
+                f"Directory creation failed. Path attempted: {os.path.join(base_temp_dir, self.sha)}"
+            )
         except PermissionError as perm_error:
             logger.error(f"PermissionError: {perm_error}")
             logger.error(f"Check permissions for directory: {base_temp_dir}")
         except Exception as e:
             logger.error(f"Unexpected error: {e}")
         else:
-            logger.debug(f"Custom temp directory is not writable or does not exist: {base_temp_dir}")
+            logger.debug(
+                f"Custom temp directory is not writable or does not exist: {base_temp_dir}"
+            )
         tmp_repo_dir = os.path.join(tmp_dir, "repo")
         os.makedirs(tmp_repo_dir, exist_ok=True)
         logger.info(f"Created temporary directory {tmp_repo_dir}")
@@ -130,14 +142,22 @@ class GitHubClient(VersionControlService):
         # Clean the directory
         for root, dirs, files in os.walk(tmp_repo_dir, topdown=False):
             for name in files:
-                if name.endswith('.py'):
+                if name.endswith(".py"):
                     os.remove(os.path.join(root, name))
             for name in dirs:
                 os.rmdir(os.path.join(root, name))
 
         tarfile_path = os.path.join(tmp_dir, f"{self.sha}.tar.gz")
 
-        response = requests.get(self.tarball_url, stream=True, headers={"Authorization": f"Bearer {self.__token}", "X-GitHub-Api-Version": "2022-11-28", "Accept": "application/vnd.github+json"})
+        response = requests.get(
+            self.tarball_url,
+            stream=True,
+            headers={
+                "Authorization": f"Bearer {self.__token}",
+                "X-GitHub-Api-Version": "2022-11-28",
+                "Accept": "application/vnd.github+json",
+            },
+        )
         logger.info(f"Downloading tarball from {self.tarball_url}")
         if response.status_code == 200:
             with open(tarfile_path, "wb") as f:
@@ -155,7 +175,9 @@ class GitHubClient(VersionControlService):
                 if os.path.isdir(os.path.join(tmp_repo_dir, name))
             ]
             if extracted_folders:
-                root_folder = extracted_folders[0]  # assuming the first folder is the root folder
+                root_folder = extracted_folders[
+                    0
+                ]  # assuming the first folder is the root folder
                 root_folder_path = os.path.join(tmp_repo_dir, root_folder)
                 for item in os.listdir(root_folder_path):
                     s = os.path.join(root_folder_path, item)
@@ -164,7 +186,7 @@ class GitHubClient(VersionControlService):
                         shutil.move(
                             s, d
                         )  # move all directories from the root folder to the output directory
-                    elif s.endswith('.py'):
+                    elif s.endswith(".py"):
                         # Skipping symlinks to prevent FileNotFoundError.
                         if not os.path.islink(s):
                             shutil.copy2(
@@ -205,7 +227,9 @@ class GitHubClient(VersionControlService):
 
         # Commit the changes
         try:
-            commit_output = self.run_command('git commit -m "Commit changes"', repo_path)
+            commit_output = self.run_command(
+                'git commit -m "Commit changes"', repo_path
+            )
             logger.info(f"Git commit output:\n{commit_output}")
         except Exception as e:
             logger.error(f"Commit failed: {e}")
@@ -221,12 +245,19 @@ class GitHubClient(VersionControlService):
             title="Pull request from Python script",
             body="This is an automated pull request created by a Python script.",
             head=new_branch_name,
-            base=self.default_branch
+            base=self.default_branch,
         )
         logger.info(f"Pull request created in {repo_path}")
 
     def run_command(self, command, cwd):
-        result = subprocess.run(command, cwd=cwd, text=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        result = subprocess.run(
+            command,
+            cwd=cwd,
+            text=True,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         logger.debug(f"Command stdout: {result.stdout}")
         if result.returncode != 0:
             logger.error(f"Command stderr: {result.stderr}")

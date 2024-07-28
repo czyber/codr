@@ -23,4 +23,5 @@ class GetUser:
         user = self.__user_repository.get(request.id)
         return GetUserResponse(user=user)
 
+
 # Code: c066b8da3aa7198e0928

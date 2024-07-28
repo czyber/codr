@@ -1,5 +1,5 @@
-from dataclasses import dataclass
 import os
+from dataclasses import dataclass
 from typing import Any, TypeVar
 
 from dotenv import load_dotenv
@@ -9,7 +9,7 @@ load_dotenv()
 
 Kwargs = dict[str, Any]
 Id = str
-IdType = TypeVar('IdType', bound=Id)
+IdType = TypeVar("IdType", bound=Id)
 
 
 @dataclass
@@ -21,7 +21,7 @@ class GitHubCredentials:
     def load(cls) -> "GitHubCredentials":
         return cls(
             client_id=os.getenv("GITHUB_CLIENT_ID"),
-            client_secret=os.getenv("GITHUB_CLIENT_SECRET")
+            client_secret=os.getenv("GITHUB_CLIENT_SECRET"),
         )
 
 
