@@ -1,14 +1,14 @@
 from abc import ABCMeta, abstractmethod
-from typing import TypeVar, Generic
+from typing import Generic, TypeVar
 from uuid import uuid4
 
 from sqlalchemy import Column, String
 
 from codr.application.entities import Entity
 from codr.storage.dao.abstract_dao import DAO
-from codr.utils import Kwargs, Id
+from codr.utils import Id, Kwargs
 
-E = TypeVar('E', bound=Entity)
+E = TypeVar("E", bound=Entity)
 
 
 class Factory(Generic[E]):
@@ -21,7 +21,7 @@ class Factory(Generic[E]):
 
     def construct(self, kwargs: Kwargs) -> E:
         id_ = str(uuid4())
-        kwargs['id'] = id_
+        kwargs["id"] = id_
         return self.__entity(**kwargs)
 
     def reconstitute(self, kwargs: Kwargs) -> E:

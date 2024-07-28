@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass
 
 from codr.application.entities import User

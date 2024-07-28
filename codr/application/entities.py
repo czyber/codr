@@ -52,13 +52,19 @@ class VersionControlInfo(Entity):
     version_control_type: VersionControlType
 
     @classmethod
-    def create_github(cls, access_token: str, refresh_token: str, access_token_expires_at: datetime, refresh_token_expires_at: datetime):
+    def create_github(
+        cls,
+        access_token: str,
+        refresh_token: str,
+        access_token_expires_at: datetime,
+        refresh_token_expires_at: datetime,
+    ):
         return cls(
             access_token=access_token,
             refresh_token=refresh_token,
             access_token_expires_at=access_token_expires_at,
             refresh_token_expires_at=refresh_token_expires_at,
-            version_control_type=VersionControlType.GITHUB
+            version_control_type=VersionControlType.GITHUB,
         )
 
     @property
@@ -81,7 +87,10 @@ class User(Entity):
     repos: list[Repo] = []
 
     def has_valid_access_token(self, version_control_type: VersionControlType) -> bool:
-        return any(vci.version_control_type == version_control_type and vci.is_valid for vci in self.version_control_infos)
+        return any(
+            vci.version_control_type == version_control_type and vci.is_valid
+            for vci in self.version_control_infos
+        )
 
     def get_access_token(self, version_control_type: VersionControlType) -> str:
         for vci in self.version_control_infos:
@@ -95,8 +104,13 @@ class User(Entity):
                 return vci.refresh_token
         raise ValueError(f"No refresh token found for {version_control_type}")
 
-    def has_version_control_info(self, version_control_type: VersionControlType) -> bool:
-        return any(vci.version_control_type == version_control_type for vci in self.version_control_infos)
+    def has_version_control_info(
+        self, version_control_type: VersionControlType
+    ) -> bool:
+        return any(
+            vci.version_control_type == version_control_type
+            for vci in self.version_control_infos
+        )
 
     def set_access_token(self, set_token_request: SetTokenRequest):
         if self.has_version_control_info(set_token_request.version_control_type):
@@ -109,18 +123,26 @@ class User(Entity):
             if vci.version_control_type == set_token_request.version_control_type:
                 vci.access_token = set_token_request.access_token
                 vci.refresh_token = set_token_request.refresh_token
-                vci.access_token_expires_at = datetime.now() + timedelta(seconds=set_token_request.access_token_expires_in)
-                vci.refresh_token_expires_at = datetime.now() + timedelta(seconds=set_token_request.refresh_token_expires_in)
+                vci.access_token_expires_at = datetime.now() + timedelta(
+                    seconds=set_token_request.access_token_expires_in
+                )
+                vci.refresh_token_expires_at = datetime.now() + timedelta(
+                    seconds=set_token_request.refresh_token_expires_in
+                )
                 return
-        raise ValueError(f"No version control info found for {set_token_request.version_control_type}")
+        raise ValueError(
+            f"No version control info found for {set_token_request.version_control_type}"
+        )
 
     def add_access_token(self, set_token_request: SetTokenRequest):
         vci = VersionControlInfo(
             access_token=set_token_request.access_token,
             refresh_token=set_token_request.refresh_token,
-            access_token_expires_at=datetime.now() + timedelta(seconds=set_token_request.access_token_expires_in),
-            refresh_token_expires_at=datetime.now() + timedelta(seconds=set_token_request.refresh_token_expires_in),
-            version_control_type=set_token_request.version_control_type
+            access_token_expires_at=datetime.now()
+            + timedelta(seconds=set_token_request.access_token_expires_in),
+            refresh_token_expires_at=datetime.now()
+            + timedelta(seconds=set_token_request.refresh_token_expires_in),
+            version_control_type=set_token_request.version_control_type,
         )
         self.version_control_infos.append(vci)
         return vci

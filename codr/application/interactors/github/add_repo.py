@@ -20,7 +20,12 @@ class AddRepoResponse:
 
 
 class AddRepo:
-    def __init__(self, version_control_service: VersionControlService, user_repository: UserRepository, repo_factory: Factory[Repo]) -> None:
+    def __init__(
+        self,
+        version_control_service: VersionControlService,
+        user_repository: UserRepository,
+        repo_factory: Factory[Repo],
+    ) -> None:
         self.__version_control_service = version_control_service
         self.__user_repository = user_repository
         self.__repo_factory = repo_factory
@@ -30,11 +35,16 @@ class AddRepo:
 
     def execute(self, request: AddRepoRequest) -> AddRepoResponse:
         user = self.__user_repository.get(request.user_id)
-        user_repo_exists = any(repo.name == request.name and repo.owner == request.owner for repo in user.repos)
+        user_repo_exists = any(
+            repo.name == request.name and repo.owner == request.owner
+            for repo in user.repos
+        )
         if user_repo_exists:
             raise RepoAlreadyExistsError("User already has this repo")
         self.__version_control_service.set_user(request.user_id)
-        repo = self.__version_control_service.get_repository(f"{request.owner}/{request.name}")
+        repo = self.__version_control_service.get_repository(
+            f"{request.owner}/{request.name}"
+        )
         user.repos.append(repo)
         self.__user_repository.update(user)
         return AddRepoResponse(name=repo.name)

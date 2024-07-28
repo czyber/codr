@@ -2,11 +2,15 @@ import shutil
 
 from github.Repository import Repository
 
-from codr.application.entities import Document, Codebase
-from codr.llm.clients import invoke_query_assistant, invoke_coding_assistant, invoke_verify_agent
+from codr.application.entities import Codebase, Document
+from codr.github_client import GitHubClient
+from codr.llm.clients import (
+    invoke_coding_assistant,
+    invoke_query_assistant,
+    invoke_verify_agent,
+)
 from codr.logger import logger
 from codr.models import new_uuid
-from codr.github_client import GitHubClient
 from codr.storage.codebase_storage import CodebaseStorage
 from codr.storage.vector_db import VectorDb
 
@@ -69,7 +73,9 @@ def cleanup_dir(tmp_repo_dir):
 
 
 class CodebaseService:
-    def __init__(self, storage: CodebaseStorage, vector_db: VectorDb, repo_client: GitHubClient) -> None:
+    def __init__(
+        self, storage: CodebaseStorage, vector_db: VectorDb, repo_client: GitHubClient
+    ) -> None:
         self.__storage = storage
         self.__vector_db = vector_db
         self.__repo_client = repo_client
@@ -89,8 +95,12 @@ class CodebaseService:
         embeddings = self._create_embeddings(repo=repo)
         return embeddings
 
-    def _create_embeddings(self, repo: Repository, chunk_size=1000, overlap_size=100) -> list[Document]:
-        logger.info(f"Creating embeddings for {repo.full_name} at {self.__repo_client.sha}")
+    def _create_embeddings(
+        self, repo: Repository, chunk_size=1000, overlap_size=100
+    ) -> list[Document]:
+        logger.info(
+            f"Creating embeddings for {repo.full_name} at {self.__repo_client.sha}"
+        )
         codebase = repo.get_contents("")
         documents = []
 
@@ -104,20 +114,42 @@ class CodebaseService:
                 if len(content) < chunk_size:
                     if len(content) == 0:
                         continue
-                    documents.append(Document(id=new_uuid(), content=content, source=file_content.path, sha=self.__repo_client.sha))
+                    documents.append(
+                        Document(
+                            id=new_uuid(),
+                            content=content,
+                            source=file_content.path,
+                            sha=self.__repo_client.sha,
+                        )
+                    )
                 else:
                     start = 0
                     while start < len(content):
                         end = start + chunk_size
                         chunk = content[start:end]
-                        documents.append(Document(id=new_uuid(), content=chunk, source=file_content.path, sha=self.__repo_client.sha))
+                        documents.append(
+                            Document(
+                                id=new_uuid(),
+                                content=chunk,
+                                source=file_content.path,
+                                sha=self.__repo_client.sha,
+                            )
+                        )
                         start += chunk_size - overlap_size
 
         # Create embeddings
         embedding_id = new_uuid()
-        self.__storage.create(codebase=Codebase(sha=self.__repo_client.sha, slug=self.__repo_client.repo.full_name, embedding_id=embedding_id))
+        self.__storage.create(
+            codebase=Codebase(
+                sha=self.__repo_client.sha,
+                slug=self.__repo_client.repo.full_name,
+                embedding_id=embedding_id,
+            )
+        )
         self.__vector_db.create(documents=documents)
-        logger.info(f"Created embeddings for {repo.full_name} at {self.__repo_client.sha}")
+        logger.info(
+            f"Created embeddings for {repo.full_name} at {self.__repo_client.sha}"
+        )
         return documents
 
     def _get_embeddings(self, sha: str) -> list:
@@ -129,7 +161,9 @@ class CodebaseService:
         logger.info(f"Getting embeddings for {slug} at {sha}")
         codebase = self.__storage.get(slug=slug, sha=sha)
         if codebase is None:
-            logger.info(f"No embeddings found for {slug} at {sha}. Creating embeddings.")
+            logger.info(
+                f"No embeddings found for {slug} at {sha}. Creating embeddings."
+            )
             return self.create_embeddings(slug=slug)
         logger.info(f"Embeddings found for {slug} at {sha}. Getting embeddings.")
         return self.__vector_db.get(sha=sha)
@@ -142,8 +176,14 @@ class CodebaseService:
         relevant_files = []
         for file_path in unique_file_paths:
             logger.info(f"Getting relevant files for {file_path}")
-            relevant_files.append((file_path, merge_documents_with_overlap(
-                self.get_by_source(file_path)["documents"])))  # Todo: resolve typing issue
+            relevant_files.append(
+                (
+                    file_path,
+                    merge_documents_with_overlap(
+                        self.get_by_source(file_path)["documents"]
+                    ),
+                )
+            )  # Todo: resolve typing issue
 
         return relevant_files
 
@@ -177,4 +217,6 @@ class CodebaseService:
         return self.__vector_db.query_texts(queries, sha=self.__repo_client.sha)
 
     def get_by_source(self, source: str) -> list:
-        return self.__vector_db.get_by_metadata("source", source, sha=self.__repo_client.sha)
+        return self.__vector_db.get_by_metadata(
+            "source", source, sha=self.__repo_client.sha
+        )

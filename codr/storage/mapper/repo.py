@@ -1,4 +1,3 @@
-
 from codr.application.entities import Repo
 from codr.models import RepoModel
 from codr.storage.mapper.base import Mapper

@@ -20,5 +20,5 @@ class CreateUser:
         self.__user_repository = user_repository
 
     def execute(self, request: CreateUserRequest) -> CreateUserResponse:
-        user = self.__user_repository.create_and_add({'username': request.username})
+        user = self.__user_repository.create_and_add({"username": request.username})
         return CreateUserResponse(user=user)

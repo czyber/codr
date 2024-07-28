@@ -19,16 +19,20 @@ class SqlCodebaseStorage(CodebaseStorage):
     def create(self, codebase: Codebase) -> None:
         with SessionLocal() as session:
             codebase_model = CodebaseModel(
-                id=codebase.embedding_id,
-                name=codebase.slug,
-                sha=codebase.sha
+                id=codebase.embedding_id, name=codebase.slug, sha=codebase.sha
             )
             session.add(codebase_model)
             session.commit()
 
     def get(self, slug: str, sha: str) -> Codebase | None:
         with SessionLocal() as session:
-            codebase_model = session.query(CodebaseModel).filter_by(name=slug, sha=sha).first()
+            codebase_model = (
+                session.query(CodebaseModel).filter_by(name=slug, sha=sha).first()
+            )
             if codebase_model is None:
                 return None
-            return Codebase(sha=codebase_model.sha, slug=codebase_model.name, embedding_id=codebase_model.id)
+            return Codebase(
+                sha=codebase_model.sha,
+                slug=codebase_model.name,
+                embedding_id=codebase_model.id,
+            )

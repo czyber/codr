@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 from codr.models import Base
 from codr.storage.dao.abstract_dao import DAO
 from codr.storage.mapper.base import Mapper
-from codr.storage.utils import M, E
-from codr.utils import Kwargs, Id
+from codr.storage.utils import E, M
+from codr.utils import Id, Kwargs
 
 
 class SqlDAO(DAO):
@@ -26,7 +26,7 @@ class SqlDAO(DAO):
     def update(self, entity: E) -> E:
         stored_entity = self.get(entity.id)
         if stored_entity is None:
-            raise ValueError(f'Entity with id {entity.id} not found')
+            raise ValueError(f"Entity with id {entity.id} not found")
         model = self.__mapper.to_model(entity)
         self.__session.merge(model)
         self.__session.commit()

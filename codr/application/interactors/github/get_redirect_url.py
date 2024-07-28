@@ -20,4 +20,3 @@ class GetRedirectURL:
         github_auth_url = f"https://github.com/login/oauth/authorize?client_id={github_credentials.client_id}&scope=repo"
         logger.info(f"Redirecting to {github_auth_url}")
         return GetRedirectURLResponse(url=github_auth_url)
-
