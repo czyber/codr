@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 from fastapi import status
 from fastapi.responses import RedirectResponse
 
-from codr.api.schemas.github import GitHubAccessTokenCreate, GitHubAccessToken, RepoAdd
-from codr.application.interactors.github.add_repo import AddRepo, AddRepoRequest
+from codr.api.schemas.github import GitHubAccessTokenCreate, GitHubAccessToken
+from codr.application.entities import VersionControlType
 from codr.dependencies import Dependencies
 from codr.application.interactors.github.create_access_token import CreateAccessToken, CreateAccessTokenRequest
 from codr.application.interactors.github.get_redirect_url import GetRedirectURL, GetRedirectURLRequest
@@ -30,4 +30,4 @@ def github_callback(
     response = create_access_token_interactor.execute(CreateAccessTokenRequest(code=github_access_token_create_interactor.code, user_id=github_access_token_create_interactor.user_id))
     if response.user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    return GitHubAccessToken(user=response.user)
+    return GitHubAccessToken(access_token=response.user.get_access_token(VersionControlType.GITHUB))

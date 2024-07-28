@@ -5,7 +5,6 @@ from codr.application.entities import User, VersionControlInfo
 from codr.application.interactors.users.get_user import GetUser, GetUserRequest
 from codr.application.interactors.users.update_user import UpdateUser, UpdateUserRequest
 from codr.utils import GitHubCredentials, RedirectUri
-from codr.storage.user_repository import UserRepository
 from datetime import datetime, timedelta
 
 
@@ -39,6 +38,8 @@ class CreateAccessToken:
 
         response = requests.post(token_url, headers=headers, data=data)
         response_data = response.json()
+        if "error" in response_data:
+            raise ValueError(f"Error while creating access token for GitHub: {response_data.get('error_description')}")
         access_token = response_data.get("access_token")
         refresh_token = response_data.get("refresh_token")
         access_token_expires_at = datetime.now() + timedelta(seconds=response_data.get("expires_in"))

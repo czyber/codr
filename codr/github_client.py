@@ -9,7 +9,8 @@ from github import Github, Auth
 from github.Repository import Repository
 import requests
 
-from codr.application.entities import Repo
+from codr.application.entities import Repo, VersionControlType
+from codr.application.interactors.github.authenticate_user import AuthenticateUser, AuthenticateUserRequest
 from codr.logger import logger
 from dotenv import load_dotenv
 
@@ -51,14 +52,23 @@ class VersionControlService(ABC):
     def set_access_token(self, token: str):
         raise NotImplementedError
 
+    @abstractmethod
+    def set_user(self, user_id: str):
+        raise NotImplementedError
+
 
 class GitHubClient(VersionControlService):
-    def __init__(self):
+    def __init__(self, authenticate_user: AuthenticateUser):
         self.__github = None
         self.__repo = None
+        self.__authenticate_user = authenticate_user
 
     def set_access_token(self, token: str):
         self.__github = Github(auth=Auth.Token(token))
+
+    def set_user(self, user_id: str):
+        access_token = self.__authenticate_user.execute(AuthenticateUserRequest(user_id=user_id, version_control_type=VersionControlType.GITHUB)).access_token
+        self.set_access_token(access_token)
 
     def _get_repository(self, slug: str) -> Repository:
         logger.info(f"Getting repository {slug}")

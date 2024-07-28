@@ -30,12 +30,10 @@ class AddRepo:
 
     def execute(self, request: AddRepoRequest) -> AddRepoResponse:
         user = self.__user_repository.get(request.user_id)
-        if not user.is_authenticated(self.__version_control_type):
-            raise NoGitHubAccessTokenError("User does not have a github access token")
         user_repo_exists = any(repo.name == request.name and repo.owner == request.owner for repo in user.repos)
         if user_repo_exists:
             raise RepoAlreadyExistsError("User already has this repo")
-        self.__version_control_service.set_access_token(user.get_access_token(self.__version_control_type))
+        self.__version_control_service.set_user(request.user_id)
         repo = self.__version_control_service.get_repository(f"{request.owner}/{request.name}")
         user.repos.append(repo)
         self.__user_repository.update(user)

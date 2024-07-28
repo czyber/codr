@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
+from codr.application.entities import VersionControlType
+
 
 class UserBase(BaseModel):
     pass
@@ -15,11 +17,13 @@ class Repo(BaseModel):
     owner: str
     name: str
 
+
 class VersionControlInfo(BaseModel):
     access_token: str
     refresh_token: str
     access_token_expires_at: datetime
     refresh_token_expires_at: datetime
+    version_control_type: VersionControlType
 
 
 class User(UserBase):

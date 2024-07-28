@@ -6,6 +6,8 @@ from sqlalchemy.orm import sessionmaker, Session
 
 from codr.application.entities import User, Repo
 from codr.application.interactors.github.add_repo import AddRepo
+from codr.application.interactors.github.authenticate_user import AuthenticateUser
+from codr.application.interactors.github.refresh_access_token import RefreshAccessToken
 from codr.application.interactors.users.patch_user import PatchUser
 from codr.github_client import VersionControlService, GitHubClient
 from codr.models import UserModel, Base
@@ -89,8 +91,23 @@ class Dependencies:
         )
 
     @staticmethod
+    def refresh_access_token() -> RefreshAccessToken:
+        return RefreshAccessToken(
+            get_user=Dependencies.get_user(),
+            update_user=Dependencies.update_user()
+        )
+
+    @staticmethod
+    def authenticate_user() -> AuthenticateUser:
+        return AuthenticateUser(
+            create_access_token=Dependencies.create_access_token(),
+            refresh_access_token=Dependencies.refresh_access_token(),
+            get_user=Dependencies.get_user()
+        )
+
+    @staticmethod
     def version_control_service() -> VersionControlService:
-        return GitHubClient()
+        return GitHubClient(authenticate_user=Dependencies.authenticate_user())
 
     @staticmethod
     def add_repo() -> AddRepo:

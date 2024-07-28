@@ -14,7 +14,7 @@ class GitHubAccessTokenCreate(BaseModel):
 
 
 class GitHubAccessToken(GitHubBase):
-    user: User
+    access_token: str
 
     class Config:
         from_attributes = True
