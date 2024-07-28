@@ -16,3 +16,10 @@ repos:
     - id: isort
       name: isort (python)
       args: ["--profile=black"]
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: 'main'
+    hooks:
+      - id: mypy
+        verbose: true
+        entry: bash -c 'mypy "$@" || true' --
