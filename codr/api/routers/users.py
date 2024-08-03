@@ -1,8 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from codr.api.schemas.github import RepoAdd
-from codr.api.schemas.users import User, UserCreate, UserPatch
-from codr.application.exceptions import NoGitHubAccessTokenError, RepoAlreadyExistsError
+from codr.api.schemas.users import CodebaseIndex, User, UserCreate, UserPatch
+from codr.application.exceptions import (
+    CodebaseIndexAlreadyExistsError,
+    NoGitHubAccessTokenError,
+    RepoAlreadyExistsError,
+)
+from codr.application.interactors.codebase.create_index import (
+    CreateCodebaseIndex,
+    CreateCodebaseIndexRequest,
+)
 from codr.application.interactors.github.add_repo import AddRepo, AddRepoRequest
 from codr.application.interactors.users.create_user import CreateUser, CreateUserRequest
 from codr.application.interactors.users.delete_user import DeleteUser, DeleteUserRequest
@@ -74,3 +82,26 @@ def add_repository(
             status_code=status.HTTP_400_BAD_REQUEST, detail="User already has this repo"
         )
     return response.name
+
+
+@router.post("/{user_id}/codebases/{repo_id}", response_model=CodebaseIndex)
+def create_codebase_index(
+    user_id: str,
+    repo_id: str,
+    create_codebase_index_interactor: CreateCodebaseIndex = Depends(
+        Dependencies.create_codebase_index
+    ),
+):
+    try:
+        response = create_codebase_index_interactor.execute(
+            CreateCodebaseIndexRequest(user_id=user_id, repo_id=repo_id)
+        )
+    except CodebaseIndexAlreadyExistsError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return CodebaseIndex(repo_id=repo_id)
+
+
+@router.get("/{user_id}/codebases/{repo_id}", response_model=CodebaseIndex)
+def get_codebase_index():
+    # TODO: Implement this
+    raise NotImplementedError

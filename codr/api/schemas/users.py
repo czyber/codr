@@ -40,3 +40,7 @@ class User(UserBase):
 class UserPatch(UserBase):
     username: str | None = None
     github_access_token: str | None = None
+
+
+class CodebaseIndex(BaseModel):
+    repo_id: str

@@ -5,11 +5,15 @@ from codr.storage.mapper.base import Mapper
 
 class MapperRepo(Mapper):
     @staticmethod
-    def to_entity(model: RepoModel) -> Repo:
+    def to_entity(model: RepoModel) -> Repo | None:
+        if model is None:
+            return None
         return Repo(
             id=model.id,
             name=model.name,
             owner=model.owner,
+            sha=model.sha,
+            embeddings_created=model.embeddings_created,
         )
 
     @staticmethod
@@ -18,4 +22,6 @@ class MapperRepo(Mapper):
             id=entity.id,
             name=entity.name,
             owner=entity.owner,
+            sha=entity.sha,
+            embeddings_created=entity.embeddings_created,
         )

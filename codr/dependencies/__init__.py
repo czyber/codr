@@ -1,10 +1,11 @@
-from typing import Generator
-
-from fastapi import Depends
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from codr.application.entities import Repo, User
+from codr.application.interactors.codebase.create_index import (
+    CreateCodebaseIndex,
+    CreateCodebaseIndexPorts,
+)
 from codr.application.interactors.github.add_repo import AddRepo
 from codr.application.interactors.github.authenticate_user import AuthenticateUser
 from codr.application.interactors.github.create_access_token import CreateAccessToken
@@ -15,14 +16,16 @@ from codr.application.interactors.users.delete_user import DeleteUser
 from codr.application.interactors.users.get_user import GetUser
 from codr.application.interactors.users.patch_user import PatchUser
 from codr.application.interactors.users.update_user import UpdateUser
+from codr.codebase_service import AbstractCodebaseService, CodebaseService
 from codr.github_client import GitHubClient, VersionControlService
-from codr.models import Base, UserModel
+from codr.models import Base, RepoModel, UserModel
 from codr.storage.dao.sql_dao import SqlDAO
-from codr.storage.mapper.base import Mapper
+from codr.storage.mapper.repo import MapperRepo
 from codr.storage.mapper.user import MapperUser
+from codr.storage.repo_repository import RepoRepository
 from codr.storage.repository import Factory
-from codr.storage.storage import SessionLocal
 from codr.storage.user_repository import UserRepository
+from codr.storage.vector_db import ChromaDb, VectorDb
 
 
 class SessionSingleton:
@@ -113,3 +116,34 @@ class Dependencies:
             user_repository=Dependencies.user_repository(),
             repo_factory=Dependencies.repo_factory(),
         )
+
+    @staticmethod
+    def repo_repository() -> RepoRepository:
+        return RepoRepository(
+            dao=SqlDAO(
+                session=SessionSingleton.get_session(),
+                model=RepoModel,
+                mapper=MapperRepo(),
+            ),
+            factory=Dependencies.repo_factory(),
+        )
+
+    @staticmethod
+    def vector_db() -> VectorDb:
+        return ChromaDb()
+
+    @staticmethod
+    def codebase_service() -> AbstractCodebaseService:
+        return CodebaseService(
+            storage=Dependencies.repo_repository(), vector_db=Dependencies.vector_db()
+        )
+
+    @staticmethod
+    def create_codebase_index() -> CreateCodebaseIndex:
+        ports = CreateCodebaseIndexPorts(
+            version_control_service=Dependencies.version_control_service(),
+            codebase_service=Dependencies.codebase_service(),
+            repo_repository=Dependencies.repo_repository(),
+            user_repository=Dependencies.user_repository(),
+        )
+        return CreateCodebaseIndex(ports=ports)

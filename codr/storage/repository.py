@@ -60,11 +60,11 @@ class AbstractRepository(Generic[E], metaclass=ABCMeta):
 
 class Repository(AbstractRepository[E], Generic[E]):
     def __init__(self, dao: DAO, factory: Factory[E]):
-        self.__dao = dao
+        self._dao = dao
         self.__factory = factory
 
     def add(self, entity: E) -> E:
-        self.__dao.insert(entity)
+        self._dao.insert(entity)
         return entity
 
     def create(self, kwargs: Kwargs) -> E:
@@ -75,12 +75,12 @@ class Repository(AbstractRepository[E], Generic[E]):
         return self.add(entity)
 
     def remove(self, id_: Id) -> E:
-        entity = self.__dao.get(id_)
-        self.__dao.remove(id_)
+        entity = self._dao.get(id_)
+        self._dao.remove(id_)
         return entity
 
     def get(self, id_: Id) -> E:
-        return self.__dao.get(id_)
+        return self._dao.get(id_)
 
     def update(self, entity: E) -> E:
-        return self.__dao.update(entity)
+        return self._dao.update(entity)

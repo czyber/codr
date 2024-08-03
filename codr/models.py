@@ -42,6 +42,8 @@ class RepoModel(Base):
     id: Mapped[str] = mapped_column(primary_key=True, default=new_uuid)
     name: Mapped[str]
     owner: Mapped[str]
+    sha: Mapped[str | None]
+    embeddings_created: Mapped[bool] = mapped_column(default=False)
 
 
 class VersionControlInfoModel(Base):

@@ -4,3 +4,7 @@ class RepoAlreadyExistsError(Exception):
 
 class NoGitHubAccessTokenError(Exception):
     pass
+
+
+class CodebaseIndexAlreadyExistsError(Exception):
+    pass

@@ -1,9 +1,10 @@
 import shutil
+from abc import ABC, abstractmethod
 
 from github.Repository import Repository
 
-from codr.application.entities import Codebase, Document
-from codr.github_client import GitHubClient
+from codr.application.entities import Codebase, Document, Repo
+from codr.github_client import GitHubClient, RepoInfo
 from codr.llm.clients import (
     invoke_coding_assistant,
     invoke_query_assistant,
@@ -12,7 +13,9 @@ from codr.llm.clients import (
 from codr.logger import logger
 from codr.models import new_uuid
 from codr.storage.codebase_storage import CodebaseStorage
+from codr.storage.repo_repository import RepoRepository
 from codr.storage.vector_db import VectorDb
+from codr.utils import Id
 
 
 def get_unique_file_paths(query_results) -> set[str]:
@@ -72,35 +75,53 @@ def cleanup_dir(tmp_repo_dir):
     shutil.rmtree(tmp_repo_dir)
 
 
-class CodebaseService:
-    def __init__(
-        self, storage: CodebaseStorage, vector_db: VectorDb, repo_client: GitHubClient
-    ) -> None:
+class AbstractCodebaseService(ABC):
+    @abstractmethod
+    def create_index(self, codebase: Repository):
+        raise NotImplementedError
+
+
+class CodebaseService(AbstractCodebaseService):
+    def __init__(self, storage: RepoRepository, vector_db: VectorDb) -> None:
         self.__storage = storage
         self.__vector_db = vector_db
-        self.__repo_client = repo_client
+        self.__codebase = None
 
-    def create_embeddings(self, slug: str):
+    def create_index(self, codebase: Repository):
+        self.__codebase = codebase
+        slug = self.__codebase.full_name
+        sha = self.__codebase.get_branch(self.__codebase.default_branch).commit.sha
+        repo_info = RepoInfo.from_slug(slug)
+
+        repo = self.__storage.get_by_identifier_and_sha(info=repo_info, sha=sha)
+
+        if repo.embeddings_created:
+            return self._get_embeddings(sha=sha)
+
+        embeddings = self._create_embeddings(repo=self.__codebase, repo_id=repo.id)
+        return embeddings
+
+    def create_embeddings(self, slug: str, sha: str):
         # Use GitHub API to get the codebase
-        repo = self.__repo_client.repo
+        repo = self.__codebase.repo
 
         # Check if we already have indexed the codebase
-        sha = self.__repo_client.sha
-        codebase = self.__storage.get(slug=slug, sha=sha)
+        codebase = self.__storage.get_by_identifier_and_sha(
+            info=RepoInfo.from_slug(slug), sha=sha
+        )
 
-        if codebase is not None:
+        if codebase.embeddings_created:
             return self._get_embeddings(sha=codebase.sha)
 
         # Create embeddings
-        embeddings = self._create_embeddings(repo=repo)
+        embeddings = self._create_embeddings(repo=repo, repo_id=codebase.id)
         return embeddings
 
     def _create_embeddings(
-        self, repo: Repository, chunk_size=1000, overlap_size=100
+        self, repo: Repository, repo_id: Id, chunk_size=1000, overlap_size=100
     ) -> list[Document]:
-        logger.info(
-            f"Creating embeddings for {repo.full_name} at {self.__repo_client.sha}"
-        )
+        sha = self.__codebase.get_branch(self.__codebase.default_branch).commit.sha
+        logger.info(f"Creating embeddings for {repo.full_name} at {sha}")
         codebase = repo.get_contents("")
         documents = []
 
@@ -119,7 +140,7 @@ class CodebaseService:
                             id=new_uuid(),
                             content=content,
                             source=file_content.path,
-                            sha=self.__repo_client.sha,
+                            sha=sha,
                         )
                     )
                 else:
@@ -132,41 +153,46 @@ class CodebaseService:
                                 id=new_uuid(),
                                 content=chunk,
                                 source=file_content.path,
-                                sha=self.__repo_client.sha,
+                                sha=sha,
                             )
                         )
                         start += chunk_size - overlap_size
 
         # Create embeddings
         embedding_id = new_uuid()
-        self.__storage.create(
-            codebase=Codebase(
-                sha=self.__repo_client.sha,
-                slug=self.__repo_client.repo.full_name,
-                embedding_id=embedding_id,
+        self.__storage.update(
+            # TODO: Fix this and decide on datastructures for handling codebases/repositories
+            Repo(
+                id=repo_id,
+                name=repo.name,
+                owner=repo.owner.login,
+                sha=sha,
+                embeddings_created=True,
             )
         )
         self.__vector_db.create(documents=documents)
-        logger.info(
-            f"Created embeddings for {repo.full_name} at {self.__repo_client.sha}"
-        )
+        logger.info(f"Created embeddings for {repo.full_name} at {sha}")
         return documents
 
     def _get_embeddings(self, sha: str) -> list:
         return self.__vector_db.get(sha=sha)
 
     def get_embeddings(self) -> list:
-        slug = self.__repo_client.repo_slug
-        sha = self.__repo_client.sha
+        slug = self.__codebase.full_name
+        sha = self.__codebase.get_branch(self.__codebase.default_branch).commit.sha
         logger.info(f"Getting embeddings for {slug} at {sha}")
-        codebase = self.__storage.get(slug=slug, sha=sha)
+        codebase = self.__storage.get_by_identifier_and_sha(
+            info=RepoInfo.from_slug(slug), sha=sha
+        )
         if codebase is None:
             logger.info(
                 f"No embeddings found for {slug} at {sha}. Creating embeddings."
             )
-            return self.create_embeddings(slug=slug)
+            return self.create_embeddings(slug=slug, sha=sha)
         logger.info(f"Embeddings found for {slug} at {sha}. Getting embeddings.")
         return self.__vector_db.get(sha=sha)
+
+    """
 
     def get_relevant_files(self, task: str):
         queries = invoke_query_assistant(task).queries
@@ -186,7 +212,9 @@ class CodebaseService:
             )  # Todo: resolve typing issue
 
         return relevant_files
+        """
 
+    """
     def get_code_changes(self, task: str, relevant_files: list):
         code_changes = invoke_coding_assistant(task, relevant_files)
         verify_code_changes = invoke_verify_agent(task, code_changes)
@@ -220,3 +248,4 @@ class CodebaseService:
         return self.__vector_db.get_by_metadata(
             "source", source, sha=self.__repo_client.sha
         )
+    """
