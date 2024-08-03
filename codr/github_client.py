@@ -30,8 +30,17 @@ class RepoInfo:
     name: str
     owner: str
 
+    @staticmethod
+    def from_slug(slug: str):
+        owner, name = slug.split("/")
+        return RepoInfo(name=name, owner=owner)
+
 
 class VersionControlService(ABC):
+    @property
+    def repo(self) -> Repository:
+        raise NotImplementedError
+
     @abstractmethod
     def download(self, repo_info: RepoInfo):
         raise NotImplementedError
@@ -53,7 +62,11 @@ class VersionControlService(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def set_access_token(self, token: str):
+    def set_repository(self, slug: str) -> str:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _set_access_token(self, token: str):
         raise NotImplementedError
 
     @abstractmethod
@@ -67,7 +80,7 @@ class GitHubClient(VersionControlService):
         self.__repo = None
         self.__authenticate_user = authenticate_user
 
-    def set_access_token(self, token: str):
+    def _set_access_token(self, token: str):
         self.__github = Github(auth=Auth.Token(token))
 
     def set_user(self, user_id: str):
@@ -76,7 +89,7 @@ class GitHubClient(VersionControlService):
                 user_id=user_id, version_control_type=VersionControlType.GITHUB
             )
         ).access_token
-        self.set_access_token(access_token)
+        self._set_access_token(access_token)
 
     def _get_repository(self, slug: str) -> Repository:
         logger.info(f"Getting repository {slug}")
@@ -85,7 +98,12 @@ class GitHubClient(VersionControlService):
     def get_repository(self, slug: str) -> Repo:
         repo = self._get_repository(slug)
         repo_entity = Repo(name=repo.name, owner=repo.owner.login)
+        self.__repo = repo
         return repo_entity
+
+    def set_repository(self, slug: str) -> str:
+        self.__repo = self._get_repository(slug)
+        return self.__repo.get_branch(self.__repo.default_branch).commit.sha
 
     @property
     def repo(self) -> Repository:

@@ -20,3 +20,7 @@ class DAO(ABC):
     @abstractmethod
     def remove(self, id_: Id) -> E:
         raise NotImplementedError
+
+    @abstractmethod
+    def get_by(self, **kwargs) -> E:
+        raise NotImplementedError

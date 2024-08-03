@@ -23,6 +23,10 @@ class SqlDAO(DAO):
         model = self.__session.query(self.__model).filter_by(id=id_).first()
         return self.__mapper.to_entity(model)
 
+    def get_by(self, **kwargs) -> E:
+        model = self.__session.query(self.__model).filter_by(**kwargs).first()
+        return self.__mapper.to_entity(model)
+
     def update(self, entity: E) -> E:
         stored_entity = self.get(entity.id)
         if stored_entity is None:

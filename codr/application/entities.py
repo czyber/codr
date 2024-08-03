@@ -33,9 +33,25 @@ class Document(Entity):
     sha: str
 
 
+@dataclass
+class RepoInfo:
+    owner: str
+    name: str
+
+
 class Repo(Entity):
     owner: str
     name: str
+    sha: str | None = None
+    embeddings_created: bool = False
+
+    @property
+    def info(self) -> RepoInfo:
+        return RepoInfo(owner=self.owner, name=self.name)
+
+    @property
+    def identifier(self) -> str:
+        return f"{self.owner}/{self.name}"
 
 
 class VersionControlType(BaseEnum):
