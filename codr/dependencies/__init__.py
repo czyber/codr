@@ -69,9 +69,6 @@ class Dependencies:
     def update_user() -> UpdateUser:
         return UpdateUser(user_repository=Dependencies.user_repository())
 
-    @staticmethod
-    def create_user() -> CreateUser:
-        return CreateUser(user_repository=Dependencies.user_repository())
 
     @staticmethod
     def delete_user() -> DeleteUser:
