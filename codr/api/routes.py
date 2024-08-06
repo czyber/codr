@@ -14,5 +14,4 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router=users_router, tags=["users"])
 app.include_router(router=github_router, tags=["github"])

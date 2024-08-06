@@ -33,16 +33,6 @@ def get_user(
     return response.user
 
 
-@router.post("", response_model=User)
-def create_user(
-    user_create: UserCreate,
-    create_user_interactor: CreateUser = Depends(Dependencies.create_user),
-):
-    response = create_user_interactor.execute(
-        CreateUserRequest(username=user_create.username)
-    )
-    return response.user
-
 
 @router.patch("/{user_id}", response_model=User)
 def patch_user(
