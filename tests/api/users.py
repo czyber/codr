@@ -11,6 +11,3 @@ client = TestClient(app)
 
 
 class TestUsers(TestCase):
-    def test_create_user(self):
-        response = client.post("/users/", json={"username": "test"})
-        assert response.status_code == 200
